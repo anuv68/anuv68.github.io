@@ -1,0 +1,276 @@
+<!doctype html><html lang=en-us dir=ltr><head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><meta charset=utf-8><meta http-equiv=X-UA-Compatible content="IE=edge,chrome=1"><meta name=viewport content="width=device-width,initial-scale=1"><title>An Article on Program Synthesis: A Deep Learning Perspective | Thoughts and Notes</title><meta name=author content="anuv68"><meta name=description content="How program synthesis differs from deep learning, from deductive synthesis to FlashFill to today’s neuro-symbolic systems, and what ARC reveals is …"><meta name=keywords content="program-synthesis,deep-learning,neuro-symbolic"><link rel=canonical href=http://localhost:1313/posts/program-synthesis/><script src=http://localhost:1313/hugo-brewm.min.js defer></script><link rel=stylesheet href=http://localhost:1313/hugo-brewm.min.css><style>body{max-width:786px;margin:auto;padding:2rem}img{max-width:86vw}</style></head><body><header class=pagewidth><div id=background-header class=background aria-hidden=true></div><nav aria-label=Bypass><a id=to-content href=#content aria-label="Skip to Main Content"><span>Skip to Main Content</span>
+<kbd class=key aria-hidden=true data-key=c></kbd>
+<span class=screening aria-hidden=true></span></a></nav><details class=presentation id=top-nav><summary class=on-deck><span class=t>Navigation</span>
+<span class=menu-icon role=presentation></span></summary><nav tabindex=-1 aria-label=Top><details id=has-search class="presentation js-details" name=on-deck><summary class="on-deck srm" accesskey=q aria-labelledby=search-label aria-keyshortcuts=q><span id=search-label class="t srt">Search</span></summary><div id=search class=on-hull><div role=presentation class="screening js-cgpn"></div></div><script src=http://localhost:1313/pagefind/pagefind-ui.js type=text/javascript></script><script>let pageFindInitialized=!1;const initPageFind=function(){if(!pageFindInitialized){new PagefindUI({element:"#search",showImages:!1,translations:{placeholder:"Search"}});const e=document.querySelector(".pagefind-ui__search-input");e&&(e.setAttribute("aria-label",e.getAttribute("placeholder")),e.setAttribute("name",e.getAttribute("placeholder"))),pageFindInitialized=!0,document.removeEventListener("DOMContentLoaded",initPageFind)}};document.addEventListener("DOMContentLoaded",initPageFind)</script><noscript id=has-search-fallback class=on-hull><form id=duckduckgo class="form on-plank" action=//duckduckgo.com/ role=search aria-label=Search><input type=hidden value=localhost:1313 name=sites></input>
+<input type=hidden value=1 name=kh></input>
+<input type=hidden value=1 name=kn></input>
+<input type=hidden value=1 name=kac></input>
+<input class="ldots form__input" type=search placeholder=Search name=q role=searchbox></input>
+<button class=form__button type=submit aria-label=Search>
+<img src=https://duckduckgo.com/assets/logo_header.v109.svg alt=Search role=presentation aria-hidden=true></button></form><div role=presentation class="screening js-cgpn"></div></noscript></details></nav><div id=top-nav-screen class="screening js-cpn" role=presentation aria-hidden=true></div><hr class=hide></details></header><main id=page class=page><header class=pagewidth><menu id=menu class=srm data-i18n-back="Go Back" data-i18n-print=Print data-i18n-copy="Copy URL" data-i18n-copying=Copying...><li><a id=navigatorShare href=#mastodon role=button aria-label=Share><span class="t srt" role=tooltip>Share</span></a></li></menu><details class=presentation aria-expanded=true id=has-breadcrumb open><summary id=breadcrumb tabindex=-1><span>Breadcrumb</span></summary><nav aria-labelledby=breadcrumb><ul role=presentation class=breadcrumb><li><a href=http://localhost:1313/posts/ aria-current=true>Posts</a></li><li><a href aria-current=page tabindex=-1>An Article on Program Synthesis: A Deep Learning Perspective</a></li></ul></nav></details><hr class=hide></header><div id=top role=presentation></div><article id=main-article class="pagewidth sf" role=document aria-labelledby=title data-pagefind-ignore=all><header aria-labelledby=title><h1 id=title data-bionread-safe>An Article on Program Synthesis: A Deep Learning Perspective</h1></header><section id=content class=content aria-labelledby=title data-bionread-safe><h2 id=overview>Overview</h2><p>Instead of interpolating between data points in a continuous embedding space, program
+synthesis searches for discrete programs, or models, that perfectly explain observed data
+allowing it to achieve much greater generalization power with extreme data-efficiency,
+requiring only a few examples to learn.
+Intuitively we can understand that deep learning is majorly about continuous optimization
+while program synthesis is more of discrete search. Both ultimately seek a program that
+maps inputs to outputs. The difference lies in how they search for it. Deep learning starts
+with a parameterized function and continuously adjusts billions of weights using gradient
+descent until the observed error is minimized. Program synthesis instead searches directly
+through a space of executable programs, attempting to find one that exactly satisfies a
+specification.<br>Historically, the field began with formal logic and correctness guarantees, long before neural
+networks entered the picture. Over time, however, the focus shifted from proving programs
+correct to generating useful programs efficiently, eventually leading to today&rsquo;s neural and
+hybrid approaches.
+The earliest synthesis systems lived in a world that many deep learning practitioners would
+find unfamiliar: a world with no datasets, no training loops, and no generalization error. In
+deductive synthesis, the user provides a precise formal specification describing the desired
+behaviour. The synthesizer then applies logical inference rules to derive a program that is
+mathematically guaranteed to satisfy that specification. This idea is rooted in the famous
+&ldquo;proofs-as-programs&rdquo; correspondence, where constructing a proof effectively constructs a
+correct program. In some sense, deductive synthesis represents the ultimate zero-error
+regime: correctness is not measured empirically but established formally.
+Unfortunately, real-world users rarely provide mathematical specifications. They provide
+examples. This led to the emergence of Inductive Program Synthesis (IPS), often called
+Programming by Example. Imagine being given only a handful of input-output pairs and
+being asked to infer the underlying procedure. Unlike supervised learning, which typically
+relies on thousands or millions of examples and learns a statistical approximation, inductive
+synthesis searches for a program that exactly fits every observed example. The objective is
+not to minimize a loss function but to satisfy a set of constraints perfectly. Techniques such
+as enumerative search, SAT solving, and SMT solving became central because the search
+space is discrete rather than differentiable.
+As synthesis problems became larger and more complex, researchers began looking for ways
+to inject prior knowledge into the search process. This led to schema-guided synthesis and
+Sketching. The key idea is remarkably similar to architectural inductive bias in deep learning.
+A convolutional network already assumes locality and translation invariance before seeing
+any data. Likewise, a sketch provides a partial program structure and leaves only certain
+pieces unspecified. Instead of searching over all possible programs, the synthesizer only fills
+the holes. By injecting domain knowledge directly into the search process, sketching
+dramatically reduces combinatorial complexity and often turns impossible synthesis
+problems into tractable ones.
+Then came large language models. Instead of formal specifications or carefully crafted
+examples, users could simply describe intent in natural language. Modern code models
+generate programs by predicting tokens, much like they generate essays or conversations. At
+their core, these systems synthesize programs through probabilistic next-token prediction,
+generating code one token at a time conditioned on a natural language specification and
+their learned prior over source code. This dramatically improved usability and scale.
+Suddenly, synthesizing a database query or a web application became a prompting problem
+rather than a theorem-proving problem. However, something important was lost in the
+transition. Traditional synthesis systems could provide correctness guarantees. LLMs provide
+probabilities. A generated program may look convincing while still being subtly incorrect.
+This tension has pushed the field toward neuro-symbolic synthesis. Rather than choosing
+between neural networks and symbolic reasoning, hybrid systems attempt to combine them.
+The neural component acts as a powerful prior, rapidly proposing candidate programs or
+promising search directions. The symbolic component acts as a verifier, checking constraints,
+executing programs, and pruning invalid solutions. One can think of the neural network as
+intuition and the symbolic engine as rigor. The hope is to obtain the scalability and flexibility
+of deep learning while retaining the reliability of formal reasoning.
+Viewed historically, program synthesis has evolved from purely logical systems, to inductive
+search over examples, to schema-guided and sketch-based approaches, to neural code
+generators, and finally toward sophisticated neuro-symbolic hybrids.<br>Interestingly, modern benchmarks such as ARC have revived renewed interest in many of
+these ideas. ARC tasks provide only a handful of examples and require discovering a
+transformation that generalizes beyond them, a setting that closely resembles the core
+problem of inductive synthesis. Yet pure symbolic approaches struggle with combinatorial
+search, while purely neural approaches often struggle with systematic generalization and
+verification. As a result, there is growing interest in neuro-symbolic systems that combine
+neural pattern recognition with symbolic search and formal reasoning. Whether the future
+lies in large language models, program synthesis, or some deeper synthesis of the two
+remains an open question. What is clear, however, is that many of the challenges exposed by
+ARC are pushing the field back toward a question that has existed since the earliest days of
+AI: can intelligence be built by learning patterns alone, or must it also discover explicit
+procedures that explain them?</p><h2 id=a-deeper-dive-into-the-nuances-of-traditional-program-synthesis>A deeper dive into the nuances of traditional program synthesis</h2><p>An elegant example of traditional program synthesis can be found in a tool most of us have
+used countless times: Excel&rsquo;s FlashFill. Given just a few examples of how you would like data
+to be transformed, FlashFill can often infer the desired operation and automatically
+complete the remaining entries. Surprisingly, this feature was developed long before the
+current wave of deep learning-powered systems and does not rely on neural networks,
+gradient descent, or large-scale training data.
+Before diving into how FlashFill works, it is worth understanding the three major ideas that
+shaped traditional program synthesis: deductive synthesis, inductive synthesis, and schema
+guided synthesis through sketches.
+The earliest systems were based on deductive synthesis. Instead of providing training data,
+the user specifies the desired behavior as a logical formula, typically of the form ∀x ∃z R(x,
+z), where x represents the inputs, z the outputs, and R(x, z) the relationship that must hold
+between them. The synthesizer then acts like a theorem prover, constructing a proof that
+such an output exists. The program is extracted directly from this proof, guaranteeing
+correctness by construction. For a deep learning practitioner, this is the ultimate zero
+generalization-error regime, though writing these formal specifications is often harder than
+writing the program itself.
+Researchers therefore moved toward inductive synthesis, often called Programming by
+Example. Rather than providing mathematical specifications, users provide a small number
+of input-output examples. At first glance this resembles few-shot learning, but the
+underlying philosophy is very different. A neural network statistically generalizes from
+examples; an inductive synthesizer performs a combinatorial search through a space of
+candidate programs until it finds one that exactly satisfies every example. There is no notion
+of minimizing a loss function. The candidate program is either correct or incorrect.
+As synthesis tasks became more complex, search quickly became intractable. To manage
+this, researchers introduced schemas and sketches. A sketch is a partially specified program
+containing &ldquo;holes&rdquo; that the synthesizer must fill. This idea is remarkably similar to
+architectural inductive bias in deep learning. Just as a CNN restricts the hypothesis space by
+assuming locality and translation invariance, a sketch restricts the program space by fixing
+part of the structure beforehand. Instead of searching for every possible program, the
+synthesizer only searches for what belongs inside the holes.
+With this background, we can finally understand FlashFill.
+Consider the following task:
+John Doe → J. Doe
+Alice Cooper → A. Cooper
+and suppose we want to transform:
+Jane Smith → ?
+A deep learning practitioner would likely frame this as a sequence-to-sequence translation
+problem. We could collect thousands of examples, tokenize the strings, train a Transformer
+using cross-entropy loss, and learn a probabilistic mapping from names to formatted
+outputs. FlashFill takes a radically different approach.
+FlashFill begins with the assumption that the user&rsquo;s intent can be expressed as a small
+program written in a carefully designed Domain Specific Language (DSL). This language
+contains operations such as:
+• Extract substring
+• Locate delimiters
+• Select tokens
+• Concatenate strings
+• Insert constants
+The goal is not to learn weights. The goal is to discover a program.
+For example, FlashFill might hypothesize:
+Take first character of first token + &ldquo;. " + second token
+which would produce:
+John Doe → J. Doe
+Alice Cooper → A. Cooper
+Jane Smith → J. Smith
+Notice what has happened. FlashFill has transformed a data problem into a search problem.
+Unfortunately, many different programs may explain the same examples. Given only:
+John Doe → J. Doe
+all of the following programs are valid:
+• Take first character + second token
+• Take everything before first space and shorten it
+• Take position 1 and append text after position 5
+• &mldr;
+The challenge is therefore not merely finding a program. The challenge is finding the
+program that best captures the user&rsquo;s intent.
+Naively, one might imagine enumerating every possible program in the DSL and testing them
+one by one. This quickly becomes impossible. Even a small collection of string manipulation
+operators can generate millions of candidate programs.
+The key innovation behind FlashFill is Version Space Algebra (VSA).
+Rather than representing candidate programs individually, FlashFill represents entire families
+of programs simultaneously using a compact graph structure. When the first example is
+provided, FlashFill constructs a graph containing every program capable of producing the
+desired output. When a second example is provided, another graph is constructed. The
+synthesis process then becomes one of intersecting these graphs, eliminating enormous
+numbers of invalid programs in a single operation.
+A useful way to think about VSA is not as search, but as elimination. Instead of asking:
+&ldquo;Which program should I try next?&rdquo;
+FlashFill asks:
+&ldquo;Which entire classes of programs can I eliminate immediately?&rdquo;
+Every additional example collapses the version space further until only a small set of
+plausible programs remains.
+At this point FlashFill faces one final problem. Multiple programs may still satisfy every
+example. The system therefore ranks candidate programs according to carefully designed
+heuristics. Simpler transformations are preferred over highly specific ones. Programs that
+appear more generalizable are ranked higher than programs that merely memorize the
+examples. In many ways, this ranking stage is where FlashFill attempts to infer the user&rsquo;s true
+intent.
+FlashFill highlights the fundamental trade-off between traditional program synthesis and
+deep learning. Neural networks operate over smooth, differentiable landscapes and excel
+when data is plentiful and noisy. Program synthesis operates over discrete program spaces
+and excels when examples are scarce but correctness matters. One side offers statistical
+generalization; the other offers exact reasoning. Interestingly, the setup of FlashFill
+(discovering a latent procedure from only a handful of examples) looks strikingly similar to
+the challenge of settings encountered in ARC-style reasoning tasks. This is one reason
+modern neuro-symbolic research has revived many ideas from traditional program synthesis,
+combining neural pattern recognition with symbolic search and verification.</p><h2 id=modern-approaches---neuro-symbolic-program-synthesis>Modern Approaches - Neuro-Symbolic Program Synthesis</h2><p>As deep learning systems became increasingly successful, researchers naturally began asking
+whether the strengths of neural networks and symbolic reasoning could be combined. A
+useful overview of these integration strategies is provided by Henry Kautz&rsquo;s neuro-symbolic
+taxonomy, which categorizes the many ways learning and reasoning can interact. For our
+purposes, however, the exact categories are less important than the key ideas they
+introduced.
+One of the earliest insights was that symbolic knowledge need not remain separate from
+neural networks. Logical constraints, domain knowledge, and expert rules can be injected
+directly into the training process, influencing how representations are learned. Symbolic
+structure acts as an additional inductive bias, guiding optimization toward more meaningful
+solutions.
+A second line of research explored the opposite direction: using neural networks to assist
+symbolic reasoning. Traditional program synthesis systems often struggled because the
+search space of possible programs grows combinatorially. Neural models can learn useful
+priors over this search space, predicting which hypotheses, programs, or reasoning steps are
+most promising.<br>Researchers also explored incorporating symbolic constraints directly into neural objectives.
+Rather than treating logical rules as hard requirements, they can be expressed as
+differentiable constraints or regularizers that influence the loss function itself. In this view,
+symbolic reasoning becomes another source of supervision, encouraging models to learn
+representations that remain consistent with known structure.
+Another important direction involves combining neural perception with symbolic reasoning.
+Neural networks excel at transforming raw sensory inputs such as images, audio, and
+language into useful representations, while symbolic systems excel at operating on
+structured objects and relations. Hybrid architectures therefore often use neural
+components for perception and abstraction while relying on symbolic components for
+planning, reasoning, verification, or search.
+More recently, large language models have accelerated interest in neuro-symbolic systems
+even further. Modern reasoning architectures increasingly combine neural generation with
+symbolic verification, execution engines, theorem provers, interpreters, planners, or search
+procedures. Neural models generate candidate solutions, while symbolic components
+validate, refine, or reject them.<br>Although these paradigms differ significantly in implementation, they all represent attempts
+to bridge the same gap. The central challenge is determining how these two forms of
+computation should cooperate. For different purposes different solutions were needed to be
+administered.<br>Benchmarks like ARC open our eyes to the fact that despite decades of progress, no existing
+paradigm has yet demonstrated the level of abstraction, adaptability, and sample efficiency
+displayed by humans. This naturally leads us to the next question: if we already know how to
+combine learning and reasoning, what is still missing?</p><h2 id=towards-agi--a-vision-to-combine-the-two-paradigms>Towards AGI – A Vision to Combine the Two Paradigms</h2><p>If the past decade of research has taught us anything, it is that neither pure deep learning
+nor pure symbolic reasoning appears sufficient on its own. Deep learning excels at extracting
+patterns from vast amounts of data, while symbolic systems excel at manipulating explicit
+abstractions and enforcing structure. Neuro-symbolic systems have made significant
+progress by combining these strengths, yet a fundamental gap remains.
+Benchmarks such as ARC make this limitation particularly visible. Unlike most machine
+learning tasks, ARC provides only a handful of examples and requires discovering a
+transformation that generalizes beyond them. The challenge is not merely recognizing
+patterns, searching through candidate programs, or recalling previously learned solutions.
+Instead, it often requires constructing entirely new abstractions from minimal evidence.
+Humans perform this routinely. Modern AI systems still struggle.
+This observation points toward a deeper question. Perhaps intelligence is not simply the
+ability to learn functions, nor merely the ability to search over symbolic structures. Perhaps
+it is the ability to rapidly acquire new skills, construct useful abstractions, and reuse them
+across entirely novel situations. In other words, the challenge may not be reasoning itself,
+but learning how to reason efficiently in previously unseen environments.
+This perspective has motivated a growing number of research efforts. Projects such as
+DreamCoder explored the idea of continually learning new abstractions while solving tasks,
+effectively compressing previous experience into reusable building blocks. More recently,
+organizations such as Symbolica and NDEA have argued that future intelligent systems may
+require richer mechanisms for abstraction formation, compositional reasoning, world
+modelling, and program-like representations that go beyond both traditional symbolic
+systems and today&rsquo;s large language models.
+A recurring theme across these efforts is the notion of skill acquisition efficiency—the ability
+to learn a new capability from very little experience. Human children do not require
+thousands of examples to understand concepts such as symmetry, containment, counting, or
+object permanence. They appear to possess a collection of priors that allow them to rapidly
+construct explanations for unfamiliar situations. Understanding how such abstractions are
+represented, acquired, and reused remains one of the central open questions in AI.
+Viewed through this lens, ARC is less a benchmark and more a diagnostic tool. It reveals that
+current systems can often recognize patterns, retrieve knowledge, and even perform
+sophisticated reasoning, yet still struggle to form entirely new abstractions from sparse
+evidence. The challenge is not simply more parameters, more data, or more compute. It is
+understanding how intelligent systems can efficiently construct the concepts needed to solve
+problems they have never encountered before.
+Whether the path forward ultimately resembles program synthesis, large language models,
+neuro-symbolic systems, or an entirely new paradigm remains unknown. What is becoming
+increasingly clear, however, is that intelligence appears to require both powerful pattern
+recognition and explicit reasoning, combined with an ability that neither paradigm has fully
+captured: the rapid formation of new abstractions. The search for that missing ingredient
+remains one of the most important challenges on the road toward Artificial General
+Intelligence.
+Thank you for reading through this article and indulging my condensed take on such vast
+fields :)
+~ Anushaa</p></section></article><div id=exclude role=presentation><div class=pagewidth><hr><div id=contentinfo role=contentinfo data-pagefind-ignore=all><details class=presentation aria-expanded=true id=has-share open><summary id=share tabindex=-1><span>Share</span></summary><nav aria-labelledby=share><ul role=presentation class="share srm"><li id=has-mastodon><form class=form id=mastodon action=//sharetomastodon.github.io/ target=_blank rel="noopener noreferrer"><input id=mastodonTitle type=hidden name=title value="An Article on Program Synthesis: A Deep Learning Perspective">
+<input id=mastodonPermalink type=hidden name=url value=http://localhost:1313/posts/program-synthesis/>
+<input id=mastodonText type=hidden name=text value="An Article on Program Synthesis: A Deep Learning Perspective http://localhost:1313/posts/program-synthesis/" disabled>
+<input id=mastodonInstance type=url class="ldots form__input" placeholder="Enter Mastodon instance (https://www.example.com)" aria-label="Mastodon instance URL">
+<button class=form__button type=submit aria-label="Share on Mastodon">
+<i class="icon mastodon sri" aria-hidden=true></i>
+<span class="t srt" role=tooltip>Share on Mastodon</span></button></form></li><li><a href="mailto:?subject=An%20Article%20on%20Program%20Synthesis%3a%20A%20Deep%20Learning%20Perspective&body=http%3a%2f%2flocalhost%3a1313%2fposts%2fprogram-synthesis%2f" role=button aria-label="Share on Email"><i class="email sri" aria-hidden=true></i>
+<span class="t srt" role=tooltip>Share on Email</span></a></li><li><a href="whatsapp://send?text=An%20Article%20on%20Program%20Synthesis%3a%20A%20Deep%20Learning%20Perspective%20http%3a%2f%2flocalhost%3a1313%2fposts%2fprogram-synthesis%2f" role=button aria-label="Share on Whatsapp"><i class="whatsapp sri" aria-hidden=true></i>
+<span class="t srt" role=tooltip>Share on Whatsapp</span></a></li><li><a rel="noopener noreferrer" target=_blank href="https://telegram.me/share/url?text=An%20Article%20on%20Program%20Synthesis:%20A%20Deep%20Learning%20Perspective&amp;url=http://localhost:1313/posts/program-synthesis/" role=button aria-label="Share on Telegram in new tab"><i class="telegram sri" aria-hidden=true></i>
+<span class="t srt" role=tooltip>Share on Telegram</span></a></li><li><a rel="noopener noreferrer" target=_blank href="https://bsky.app/intent/compose?text=An%20Article%20on%20Program%20Synthesis:%20A%20Deep%20Learning%20Perspective&amp;url=http://localhost:1313/posts/program-synthesis/" role=button aria-label="Share on Bluesky in new tab"><i class="bluesky sri" aria-hidden=true></i>
+<span class="t srt" role=tooltip>Share on Bluesky</span></a></li><li><a rel="noopener noreferrer" target=_blank href="https://facebook.com/sharer/sharer.php?u=http://localhost:1313/posts/program-synthesis/" role=button aria-label="Share on Facebook in new tab"><i class="facebook sri" aria-hidden=true></i>
+<span class="t srt" role=tooltip>Share on Facebook</span></a></li><li><a rel="noopener noreferrer" target=_blank href="https://news.ycombinator.com/submitlink?u=http://localhost:1313/posts/program-synthesis/&amp;t=An%20Article%20on%20Program%20Synthesis:%20A%20Deep%20Learning%20Perspective" role=button aria-label="Share on Hackernews in new tab"><i class="hackernews sri" aria-hidden=true></i>
+<span class="t srt" role=tooltip>Share on Hackernews</span></a></li><li><a rel="noopener noreferrer" target=_blank href="https://www.linkedin.com/shareArticle?mini=true&amp;url=http://localhost:1313/posts/program-synthesis/&amp;title=An%20Article%20on%20Program%20Synthesis:%20A%20Deep%20Learning%20Perspective&amp;summary=An%20Article%20on%20Program%20Synthesis:%20A%20Deep%20Learning%20Perspective&amp;source=http://localhost:1313/posts/program-synthesis/" role=button aria-label="Share on Linkedin in new tab"><i class="linkedin sri" aria-hidden=true></i>
+<span class="t srt" role=tooltip>Share on Linkedin</span></a></li><li><a rel="noopener noreferrer" target=_blank href="https://pinterest.com/pin/create/button/?url=http://localhost:1313/posts/program-synthesis/&amp;media=http://localhost:1313/posts/program-synthesis/&amp;description=An%20Article%20on%20Program%20Synthesis:%20A%20Deep%20Learning%20Perspective" role=button aria-label="Share on Pinterest in new tab"><i class="pinterest sri" aria-hidden=true></i>
+<span class="t srt" role=tooltip>Share on Pinterest</span></a></li><li><a rel="noopener noreferrer" target=_blank href="https://reddit.com/submit/?url=http://localhost:1313/posts/program-synthesis/&amp;resubmit=true&amp;title=An%20Article%20on%20Program%20Synthesis:%20A%20Deep%20Learning%20Perspective" role=button aria-label="Share on Reddit in new tab"><i class="reddit sri" aria-hidden=true></i>
+<span class="t srt" role=tooltip>Share on Reddit</span></a></li><li><a rel="noopener noreferrer" target=_blank href="https://www.tumblr.com/widgets/share/tool?posttype=link&amp;title=An%20Article%20on%20Program%20Synthesis:%20A%20Deep%20Learning%20Perspective&amp;caption=An%20Article%20on%20Program%20Synthesis:%20A%20Deep%20Learning%20Perspective&amp;content=http://localhost:1313/posts/program-synthesis/&amp;canonicalUrl=http://localhost:1313/posts/program-synthesis/" role=button aria-label="Share on Tumblr in new tab"><i class="tumblr sri" aria-hidden=true></i>
+<span class="t srt" role=tooltip>Share on Tumblr</span></a></li><li><a rel="noopener noreferrer" target=_blank href="https://threads.net/intent/post?text=An%20Article%20on%20Program%20Synthesis:%20A%20Deep%20Learning%20Perspective&amp;url=http://localhost:1313/posts/program-synthesis/" role=button aria-label="Share on Threads in new tab"><i class="threads sri" aria-hidden=true></i>
+<span class="t srt" role=tooltip>Share on Threads</span></a></li><li><a rel="noopener noreferrer" target=_blank href="https://twitter.com/intent/tweet/?text=An%20Article%20on%20Program%20Synthesis:%20A%20Deep%20Learning%20Perspective&amp;url=http://localhost:1313/posts/program-synthesis/" role=button aria-label="Share on Twitter in new tab"><i class="twitter sri" aria-hidden=true></i>
+<span class="t srt" role=tooltip>Share on Twitter</span></a></li><li><a rel="noopener noreferrer" target=_blank href="https://www.xing.com/app/user?op=share;url=http://localhost:1313/posts/program-synthesis/;title=An%20Article%20on%20Program%20Synthesis:%20A%20Deep%20Learning%20Perspective" role=button aria-label="Share on Xing in new tab"><i class="xing sri" aria-hidden=true></i>
+<span class="t srt" role=tooltip>Share on Xing</span></a></li></ul></nav></details></div></div></div></main><footer id=body-footer class=pagewidth><div id=background-footer class="background hide" role=presentation aria-hidden=true></div><div id=focusMode></div><details id=has-a11y class="presentation js-details hide" name=on-deck aria-haspopup=true aria-labelledby=has-a11y-summary data-i18n-accessibility=Accessibility data-i18n-optimizesr="Screen Reader Optimization" data-i18n-optimizesrdesc="Optimize display and resources for screen reader users who navigate with a pointer device." data-i18n-colorsettings="Color Settings" data-i18n-darkmode="Dark Mode" data-i18n-light=Light data-i18n-dark=Dark data-i18n-contrast=Contrast data-i18n-lesscontrast=Low data-i18n-morecontrast=High data-i18n-defaultcontrast=Default data-i18n-colorpalette="Color Palette" data-i18n-defaultcolor=Default data-i18n-deuteranopia=Deuteranopia data-i18n-protanopia=Protanopia data-i18n-tritanopia=Tritanopia data-i18n-monochrome=Monochrome data-i18n-fontsize="Font Size" data-i18n-baselinestretch="Baseline Stretch" data-i18n-opendyslexic="Use OpenDyslexic Font" data-i18n-menucontrols="Accessibility Menu Controls" data-i18n-save=Save data-i18n-reset=Reset data-i18n-close=Close data-i18n-bionread="BionRead Mode" data-i18n-focusmode="Focus Mode" data-i18n-nolocalstorage="LocalStorage is not available in your browser. Settings won't be saved."></details><div id=useBionRead class=sri></div><nav aria-label=Bypass><a id=to-top class=srm href=#top title="To Content Top" accesskey=c aria-keyshortcuts=c aria-label="To Content Top"><span class="t srt">To Content Top</span>
+<kbd class=key aria-hidden=true data-key=c></kbd></a></nav></footer><div id=bionReadSnapshot hidden></div><div id=background-body role=presentation aria-hidden=true></div></body></html>

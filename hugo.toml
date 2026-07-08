@@ -1,0 +1,53 @@
+
+locale = 'en-us'
+
+baseURL = 'https://anuv68.github.io/'
+
+title = 'Thoughts and Notes'
+theme = 'hugo-brewm'
+languageCode = 'en-us'
+
+## Enable Git information for pages, (e.g. lastMod date information)
+enableGitInfo = true
+
+## Convert all URLs to absolute URLs
+canonifyURLs = true
+
+## Default language for content
+defaultContentLanguage = 'en'
+
+## Generate a robots.txt
+enableRobotsTXT = true
+
+## markup configuration
+[markup]
+    [markup.highlight]
+        codeFences = true
+        noClasses = false
+
+## Taxonomy register
+[taxonomies]
+    category = 'categories'
+    tag = 'tags'
+    author = 'author'
+
+## Site parameters
+[params]
+    title = "Thoughts and Notes"
+    description = "A place for organising my thoughts and everything I learn!"
+    copyright = "Copyright 2026 © anuv68"
+    HideHugoCredit = true
+
+    [params.author]
+        name = 'anuv68'
+        email = 'anushaa0826@gmail.com'
+
+    [params.posts]
+        colophon = true
+        related = true
+        share = true
+
+    ## Enable client-side search (via Pagefind)
+    [params.search]
+        enable = true
+        pagefind = true

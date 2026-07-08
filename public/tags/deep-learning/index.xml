@@ -1,0 +1,259 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>Deep-Learning on Thoughts and Notes</title><link>http://localhost:1313/tags/deep-learning/</link><description>Recent Posts in Deep-Learning on Thoughts and Notes</description><generator>Hugo 0.164.0</generator><language>en-us</language><managingEditor>anushaa0826@gmail.com (anuv68)</managingEditor><webMaster>anushaa0826@gmail.com (anuv68)</webMaster><lastBuildDate>Wed, 08 Jul 2026 04:47:03 +0000</lastBuildDate><atom:link href="http://localhost:1313/tags/deep-learning/index.xml" rel="self" type="application/rss+xml"/><item><title>An Article on Program Synthesis: A Deep Learning Perspective</title><link>http://localhost:1313/posts/program-synthesis/</link><pubDate>Wed, 08 Jul 2026 00:00:00 +0000</pubDate><author>anushaa0826@gmail.com (anuv68)</author><dc:creator>anuv68</dc:creator><guid>http://localhost:1313/posts/program-synthesis/</guid><description>How program synthesis differs from deep learning, from deductive synthesis to FlashFill to today&amp;rsquo;s neuro-symbolic systems, and what ARC reveals is still missing.</description><content:encoded>&lt;h2 id="overview"&gt;Overview&lt;/h2&gt;
+&lt;p&gt;Instead of interpolating between data points in a continuous embedding space, program
+synthesis searches for discrete programs, or models, that perfectly explain observed data
+allowing it to achieve much greater generalization power with extreme data-efficiency,
+requiring only a few examples to learn.
+Intuitively we can understand that deep learning is majorly about continuous optimization
+while program synthesis is more of discrete search. Both ultimately seek a program that
+maps inputs to outputs. The difference lies in how they search for it. Deep learning starts
+with a parameterized function and continuously adjusts billions of weights using gradient
+descent until the observed error is minimized. Program synthesis instead searches directly
+through a space of executable programs, attempting to find one that exactly satisfies a
+specification.&lt;br&gt;
+Historically, the field began with formal logic and correctness guarantees, long before neural
+networks entered the picture. Over time, however, the focus shifted from proving programs
+correct to generating useful programs efficiently, eventually leading to today&amp;rsquo;s neural and
+hybrid approaches.
+The earliest synthesis systems lived in a world that many deep learning practitioners would
+find unfamiliar: a world with no datasets, no training loops, and no generalization error. In
+deductive synthesis, the user provides a precise formal specification describing the desired
+behaviour. The synthesizer then applies logical inference rules to derive a program that is
+mathematically guaranteed to satisfy that specification. This idea is rooted in the famous
+&amp;ldquo;proofs-as-programs&amp;rdquo; correspondence, where constructing a proof effectively constructs a
+correct program. In some sense, deductive synthesis represents the ultimate zero-error
+regime: correctness is not measured empirically but established formally.
+Unfortunately, real-world users rarely provide mathematical specifications. They provide
+examples. This led to the emergence of Inductive Program Synthesis (IPS), often called
+Programming by Example. Imagine being given only a handful of input-output pairs and
+being asked to infer the underlying procedure. Unlike supervised learning, which typically
+relies on thousands or millions of examples and learns a statistical approximation, inductive
+synthesis searches for a program that exactly fits every observed example. The objective is
+not to minimize a loss function but to satisfy a set of constraints perfectly. Techniques such
+as enumerative search, SAT solving, and SMT solving became central because the search
+space is discrete rather than differentiable.
+As synthesis problems became larger and more complex, researchers began looking for ways
+to inject prior knowledge into the search process. This led to schema-guided synthesis and
+Sketching. The key idea is remarkably similar to architectural inductive bias in deep learning.
+A convolutional network already assumes locality and translation invariance before seeing
+any data. Likewise, a sketch provides a partial program structure and leaves only certain
+pieces unspecified. Instead of searching over all possible programs, the synthesizer only fills
+the holes. By injecting domain knowledge directly into the search process, sketching
+dramatically reduces combinatorial complexity and often turns impossible synthesis
+problems into tractable ones.
+Then came large language models. Instead of formal specifications or carefully crafted
+examples, users could simply describe intent in natural language. Modern code models
+generate programs by predicting tokens, much like they generate essays or conversations. At
+their core, these systems synthesize programs through probabilistic next-token prediction,
+generating code one token at a time conditioned on a natural language specification and
+their learned prior over source code. This dramatically improved usability and scale.
+Suddenly, synthesizing a database query or a web application became a prompting problem
+rather than a theorem-proving problem. However, something important was lost in the
+transition. Traditional synthesis systems could provide correctness guarantees. LLMs provide
+probabilities. A generated program may look convincing while still being subtly incorrect.
+This tension has pushed the field toward neuro-symbolic synthesis. Rather than choosing
+between neural networks and symbolic reasoning, hybrid systems attempt to combine them.
+The neural component acts as a powerful prior, rapidly proposing candidate programs or
+promising search directions. The symbolic component acts as a verifier, checking constraints,
+executing programs, and pruning invalid solutions. One can think of the neural network as
+intuition and the symbolic engine as rigor. The hope is to obtain the scalability and flexibility
+of deep learning while retaining the reliability of formal reasoning.
+Viewed historically, program synthesis has evolved from purely logical systems, to inductive
+search over examples, to schema-guided and sketch-based approaches, to neural code
+generators, and finally toward sophisticated neuro-symbolic hybrids.&lt;br&gt;
+Interestingly, modern benchmarks such as ARC have revived renewed interest in many of
+these ideas. ARC tasks provide only a handful of examples and require discovering a
+transformation that generalizes beyond them, a setting that closely resembles the core
+problem of inductive synthesis. Yet pure symbolic approaches struggle with combinatorial
+search, while purely neural approaches often struggle with systematic generalization and
+verification. As a result, there is growing interest in neuro-symbolic systems that combine
+neural pattern recognition with symbolic search and formal reasoning. Whether the future
+lies in large language models, program synthesis, or some deeper synthesis of the two
+remains an open question. What is clear, however, is that many of the challenges exposed by
+ARC are pushing the field back toward a question that has existed since the earliest days of
+AI: can intelligence be built by learning patterns alone, or must it also discover explicit
+procedures that explain them?&lt;/p&gt;
+&lt;h2 id="a-deeper-dive-into-the-nuances-of-traditional-program-synthesis"&gt;A deeper dive into the nuances of traditional program synthesis&lt;/h2&gt;
+&lt;p&gt;An elegant example of traditional program synthesis can be found in a tool most of us have
+used countless times: Excel&amp;rsquo;s FlashFill. Given just a few examples of how you would like data
+to be transformed, FlashFill can often infer the desired operation and automatically
+complete the remaining entries. Surprisingly, this feature was developed long before the
+current wave of deep learning-powered systems and does not rely on neural networks,
+gradient descent, or large-scale training data.
+Before diving into how FlashFill works, it is worth understanding the three major ideas that
+shaped traditional program synthesis: deductive synthesis, inductive synthesis, and schema
+guided synthesis through sketches.
+The earliest systems were based on deductive synthesis. Instead of providing training data,
+the user specifies the desired behavior as a logical formula, typically of the form ∀x ∃z R(x,
+z), where x represents the inputs, z the outputs, and R(x, z) the relationship that must hold
+between them. The synthesizer then acts like a theorem prover, constructing a proof that
+such an output exists. The program is extracted directly from this proof, guaranteeing
+correctness by construction. For a deep learning practitioner, this is the ultimate zero
+generalization-error regime, though writing these formal specifications is often harder than
+writing the program itself.
+Researchers therefore moved toward inductive synthesis, often called Programming by
+Example. Rather than providing mathematical specifications, users provide a small number
+of input-output examples. At first glance this resembles few-shot learning, but the
+underlying philosophy is very different. A neural network statistically generalizes from
+examples; an inductive synthesizer performs a combinatorial search through a space of
+candidate programs until it finds one that exactly satisfies every example. There is no notion
+of minimizing a loss function. The candidate program is either correct or incorrect.
+As synthesis tasks became more complex, search quickly became intractable. To manage
+this, researchers introduced schemas and sketches. A sketch is a partially specified program
+containing &amp;ldquo;holes&amp;rdquo; that the synthesizer must fill. This idea is remarkably similar to
+architectural inductive bias in deep learning. Just as a CNN restricts the hypothesis space by
+assuming locality and translation invariance, a sketch restricts the program space by fixing
+part of the structure beforehand. Instead of searching for every possible program, the
+synthesizer only searches for what belongs inside the holes.
+With this background, we can finally understand FlashFill.
+Consider the following task:
+John Doe → J. Doe
+Alice Cooper → A. Cooper
+and suppose we want to transform:
+Jane Smith → ?
+A deep learning practitioner would likely frame this as a sequence-to-sequence translation
+problem. We could collect thousands of examples, tokenize the strings, train a Transformer
+using cross-entropy loss, and learn a probabilistic mapping from names to formatted
+outputs. FlashFill takes a radically different approach.
+FlashFill begins with the assumption that the user&amp;rsquo;s intent can be expressed as a small
+program written in a carefully designed Domain Specific Language (DSL). This language
+contains operations such as:
+• Extract substring
+• Locate delimiters
+• Select tokens
+• Concatenate strings
+• Insert constants
+The goal is not to learn weights. The goal is to discover a program.
+For example, FlashFill might hypothesize:
+Take first character of first token + &amp;ldquo;. &amp;quot; + second token
+which would produce:
+John Doe → J. Doe
+Alice Cooper → A. Cooper
+Jane Smith → J. Smith
+Notice what has happened. FlashFill has transformed a data problem into a search problem.
+Unfortunately, many different programs may explain the same examples. Given only:
+John Doe → J. Doe
+all of the following programs are valid:
+• Take first character + second token
+• Take everything before first space and shorten it
+• Take position 1 and append text after position 5
+• &amp;hellip;
+The challenge is therefore not merely finding a program. The challenge is finding the
+program that best captures the user&amp;rsquo;s intent.
+Naively, one might imagine enumerating every possible program in the DSL and testing them
+one by one. This quickly becomes impossible. Even a small collection of string manipulation
+operators can generate millions of candidate programs.
+The key innovation behind FlashFill is Version Space Algebra (VSA).
+Rather than representing candidate programs individually, FlashFill represents entire families
+of programs simultaneously using a compact graph structure. When the first example is
+provided, FlashFill constructs a graph containing every program capable of producing the
+desired output. When a second example is provided, another graph is constructed. The
+synthesis process then becomes one of intersecting these graphs, eliminating enormous
+numbers of invalid programs in a single operation.
+A useful way to think about VSA is not as search, but as elimination. Instead of asking:
+&amp;ldquo;Which program should I try next?&amp;rdquo;
+FlashFill asks:
+&amp;ldquo;Which entire classes of programs can I eliminate immediately?&amp;rdquo;
+Every additional example collapses the version space further until only a small set of
+plausible programs remains.
+At this point FlashFill faces one final problem. Multiple programs may still satisfy every
+example. The system therefore ranks candidate programs according to carefully designed
+heuristics. Simpler transformations are preferred over highly specific ones. Programs that
+appear more generalizable are ranked higher than programs that merely memorize the
+examples. In many ways, this ranking stage is where FlashFill attempts to infer the user&amp;rsquo;s true
+intent.
+FlashFill highlights the fundamental trade-off between traditional program synthesis and
+deep learning. Neural networks operate over smooth, differentiable landscapes and excel
+when data is plentiful and noisy. Program synthesis operates over discrete program spaces
+and excels when examples are scarce but correctness matters. One side offers statistical
+generalization; the other offers exact reasoning. Interestingly, the setup of FlashFill
+(discovering a latent procedure from only a handful of examples) looks strikingly similar to
+the challenge of settings encountered in ARC-style reasoning tasks. This is one reason
+modern neuro-symbolic research has revived many ideas from traditional program synthesis,
+combining neural pattern recognition with symbolic search and verification.&lt;/p&gt;
+&lt;h2 id="modern-approaches---neuro-symbolic-program-synthesis"&gt;Modern Approaches - Neuro-Symbolic Program Synthesis&lt;/h2&gt;
+&lt;p&gt;As deep learning systems became increasingly successful, researchers naturally began asking
+whether the strengths of neural networks and symbolic reasoning could be combined. A
+useful overview of these integration strategies is provided by Henry Kautz&amp;rsquo;s neuro-symbolic
+taxonomy, which categorizes the many ways learning and reasoning can interact. For our
+purposes, however, the exact categories are less important than the key ideas they
+introduced.
+One of the earliest insights was that symbolic knowledge need not remain separate from
+neural networks. Logical constraints, domain knowledge, and expert rules can be injected
+directly into the training process, influencing how representations are learned. Symbolic
+structure acts as an additional inductive bias, guiding optimization toward more meaningful
+solutions.
+A second line of research explored the opposite direction: using neural networks to assist
+symbolic reasoning. Traditional program synthesis systems often struggled because the
+search space of possible programs grows combinatorially. Neural models can learn useful
+priors over this search space, predicting which hypotheses, programs, or reasoning steps are
+most promising.&lt;br&gt;
+Researchers also explored incorporating symbolic constraints directly into neural objectives.
+Rather than treating logical rules as hard requirements, they can be expressed as
+differentiable constraints or regularizers that influence the loss function itself. In this view,
+symbolic reasoning becomes another source of supervision, encouraging models to learn
+representations that remain consistent with known structure.
+Another important direction involves combining neural perception with symbolic reasoning.
+Neural networks excel at transforming raw sensory inputs such as images, audio, and
+language into useful representations, while symbolic systems excel at operating on
+structured objects and relations. Hybrid architectures therefore often use neural
+components for perception and abstraction while relying on symbolic components for
+planning, reasoning, verification, or search.
+More recently, large language models have accelerated interest in neuro-symbolic systems
+even further. Modern reasoning architectures increasingly combine neural generation with
+symbolic verification, execution engines, theorem provers, interpreters, planners, or search
+procedures. Neural models generate candidate solutions, while symbolic components
+validate, refine, or reject them.&lt;br&gt;
+Although these paradigms differ significantly in implementation, they all represent attempts
+to bridge the same gap. The central challenge is determining how these two forms of
+computation should cooperate. For different purposes different solutions were needed to be
+administered.&lt;br&gt;
+Benchmarks like ARC open our eyes to the fact that despite decades of progress, no existing
+paradigm has yet demonstrated the level of abstraction, adaptability, and sample efficiency
+displayed by humans. This naturally leads us to the next question: if we already know how to
+combine learning and reasoning, what is still missing?&lt;/p&gt;
+&lt;h2 id="towards-agi--a-vision-to-combine-the-two-paradigms"&gt;Towards AGI – A Vision to Combine the Two Paradigms&lt;/h2&gt;
+&lt;p&gt;If the past decade of research has taught us anything, it is that neither pure deep learning
+nor pure symbolic reasoning appears sufficient on its own. Deep learning excels at extracting
+patterns from vast amounts of data, while symbolic systems excel at manipulating explicit
+abstractions and enforcing structure. Neuro-symbolic systems have made significant
+progress by combining these strengths, yet a fundamental gap remains.
+Benchmarks such as ARC make this limitation particularly visible. Unlike most machine
+learning tasks, ARC provides only a handful of examples and requires discovering a
+transformation that generalizes beyond them. The challenge is not merely recognizing
+patterns, searching through candidate programs, or recalling previously learned solutions.
+Instead, it often requires constructing entirely new abstractions from minimal evidence.
+Humans perform this routinely. Modern AI systems still struggle.
+This observation points toward a deeper question. Perhaps intelligence is not simply the
+ability to learn functions, nor merely the ability to search over symbolic structures. Perhaps
+it is the ability to rapidly acquire new skills, construct useful abstractions, and reuse them
+across entirely novel situations. In other words, the challenge may not be reasoning itself,
+but learning how to reason efficiently in previously unseen environments.
+This perspective has motivated a growing number of research efforts. Projects such as
+DreamCoder explored the idea of continually learning new abstractions while solving tasks,
+effectively compressing previous experience into reusable building blocks. More recently,
+organizations such as Symbolica and NDEA have argued that future intelligent systems may
+require richer mechanisms for abstraction formation, compositional reasoning, world
+modelling, and program-like representations that go beyond both traditional symbolic
+systems and today&amp;rsquo;s large language models.
+A recurring theme across these efforts is the notion of skill acquisition efficiency—the ability
+to learn a new capability from very little experience. Human children do not require
+thousands of examples to understand concepts such as symmetry, containment, counting, or
+object permanence. They appear to possess a collection of priors that allow them to rapidly
+construct explanations for unfamiliar situations. Understanding how such abstractions are
+represented, acquired, and reused remains one of the central open questions in AI.
+Viewed through this lens, ARC is less a benchmark and more a diagnostic tool. It reveals that
+current systems can often recognize patterns, retrieve knowledge, and even perform
+sophisticated reasoning, yet still struggle to form entirely new abstractions from sparse
+evidence. The challenge is not simply more parameters, more data, or more compute. It is
+understanding how intelligent systems can efficiently construct the concepts needed to solve
+problems they have never encountered before.
+Whether the path forward ultimately resembles program synthesis, large language models,
+neuro-symbolic systems, or an entirely new paradigm remains unknown. What is becoming
+increasingly clear, however, is that intelligence appears to require both powerful pattern
+recognition and explicit reasoning, combined with an ability that neither paradigm has fully
+captured: the rapid formation of new abstractions. The search for that missing ingredient
+remains one of the most important challenges on the road toward Artificial General
+Intelligence.
+Thank you for reading through this article and indulging my condensed take on such vast
+fields :)
+~ Anushaa&lt;/p&gt;</content:encoded></item></channel></rss>
