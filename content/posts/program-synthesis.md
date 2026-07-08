@@ -2,7 +2,8 @@
 title: "An Article on Program Synthesis: A Deep Learning Perspective"
 date: 2026-07-08
 draft: false
-tags: ["program-synthesis", "deep-learning", "neuro-symbolic"]
+categories: ["program-synthesis"]
+tags: ["program-synthesis", "deep-learning"]
 summary: "How program synthesis differs from deep learning, from deductive synthesis to FlashFill to today's neuro-symbolic systems, and what ARC reveals is still missing."
 --- 
 
